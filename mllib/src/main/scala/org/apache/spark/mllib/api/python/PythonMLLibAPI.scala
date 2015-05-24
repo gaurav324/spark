@@ -242,6 +242,35 @@ private[python] class PythonMLLibAPI extends Serializable {
   }
 
   /**
+   * Java stub for Python mllib GeneralizedRegressionWithSGD.train()
+   */
+  def trainGeneralizedRegressionModelWithSGD(
+      data: JavaRDD[LabeledPoint],
+      numIterations: Int,
+      stepSize: Double,
+      miniBatchFraction: Double,
+      initialWeights: Vector,
+      regParam: Double,
+      regType: String,
+      intercept: Boolean,
+      validateData: Boolean): JList[Object] = {
+    val LogRegAlg = new GeneralizedRegressionWithSGD()
+    LogRegAlg.setIntercept(intercept)
+      .setValidateData(validateData)
+    LogRegAlg.optimizer
+      .setNumIterations(numIterations)
+      .setRegParam(regParam)
+      .setStepSize(stepSize)
+      .setMiniBatchFraction(miniBatchFraction)
+    LogRegAlg.optimizer.setUpdater(getUpdaterFromString(regType))
+    trainRegressionModel(
+      LogRegAlg,
+      data,
+      initialWeights)
+  }
+
+
+  /**
    * Java stub for Python mllib LogisticRegressionWithLBFGS.train()
    */
   def trainLogisticRegressionModelWithLBFGS(

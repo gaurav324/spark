@@ -284,6 +284,30 @@ class LeastSquaresGradient extends Gradient {
 }
 
 /**
+ * This is a test gradient computation function.
+ */ 
+@DeveloperApi
+class IdevGradient extends Gradient {
+    override def compute(data: Vector, label: Double, weights: Vector): (Vector, Double) = {
+        val diff = dot(data, weights) - label
+        val loss = diff * diff / 2.0
+        val gradient = data.copy
+        scal(diff, gradient)
+        (gradient, loss)
+    }
+
+    override def compute(
+      data: Vector,
+      label: Double,
+      weights: Vector,
+      cumGradient: Vector): Double = {
+    val diff = dot(data, weights) - label
+    axpy(diff, data, cumGradient)
+    diff * diff / 2.0
+  }
+}
+
+/**
  * :: DeveloperApi ::
  * Compute gradient and loss for a Hinge loss function, as used in SVM binary classification.
  * See also the documentation for the precise formulation.

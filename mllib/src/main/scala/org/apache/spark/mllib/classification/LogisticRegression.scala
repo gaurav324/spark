@@ -363,3 +363,126 @@ class LogisticRegressionWithLBFGS
     }
   }
 }
+
+
+/**
+ * Generalized Regression.
+ */
+class GeneralizedRegressionWithSGD private[mllib] (
+    private var stepSize: Double,
+    private var numIterations: Int,
+    private var regParam: Double,
+    private var miniBatchFraction: Double)
+  extends GeneralizedLinearAlgorithm[LogisticRegressionModel] with Serializable {
+
+  // TODO: This is where we would do the magic.
+  private val gradient = new LogisticGradient()
+
+  private val updater = new SquaredL2Updater()
+  override val optimizer = new GradientDescent(gradient, updater)
+    .setStepSize(stepSize)
+    .setNumIterations(numIterations)
+    .setRegParam(regParam)
+    .setMiniBatchFraction(miniBatchFraction)
+  override protected val validators = List(DataValidators.binaryLabelValidator)
+
+  /**
+   * Construct a GeneralizedRegression object with default parameters: {stepSize: 1.0,
+   * numIterations: 100, regParm: 0.01, miniBatchFraction: 1.0}.
+   */
+  def this() = this(1.0, 100, 0.01, 1.0)
+
+  override protected[mllib] def createModel(weights: Vector, intercept: Double) = {
+    new LogisticRegressionModel(weights, intercept)
+  }
+}
+
+/**
+ * Top-level methods for calling Logistic Regression using Stochastic Gradient Descent.
+ * NOTE: Labels used in Logistic Regression should be {0, 1}
+ */
+object GeneralizedRegressionWithSGD {
+  // NOTE(shivaram): We use multiple train methods instead of default arguments to support
+  // Java programs.
+
+  /**
+   * Train a logistic regression model given an RDD of (label, features) pairs. We run a fixed
+   * number of iterations of gradient descent using the specified step size. Each iteration uses
+   * `miniBatchFraction` fraction of the data to calculate the gradient. The weights used in
+   * gradient descent are initialized using the initial weights provided.
+   * NOTE: Labels used in Logistic Regression should be {0, 1}
+   *
+   * @param input RDD of (label, array of features) pairs.
+   * @param numIterations Number of iterations of gradient descent to run.
+   * @param stepSize Step size to be used for each iteration of gradient descent.
+   * @param miniBatchFraction Fraction of data to be used per iteration.
+   * @param initialWeights Initial set of weights to be used. Array should be equal in size to
+   *        the number of features in the data.
+   */
+  def train(
+      input: RDD[LabeledPoint],
+      numIterations: Int,
+      stepSize: Double,
+      miniBatchFraction: Double,
+      initialWeights: Vector): LogisticRegressionModel = {
+    new GeneralizedRegressionWithSGD(stepSize, numIterations, 0.0, miniBatchFraction)
+      .run(input, initialWeights)
+  }
+
+  /**
+   * Train a logistic regression model given an RDD of (label, features) pairs. We run a fixed
+   * number of iterations of gradient descent using the specified step size. Each iteration uses
+   * `miniBatchFraction` fraction of the data to calculate the gradient.
+   * NOTE: Labels used in Logistic Regression should be {0, 1}
+   *
+   * @param input RDD of (label, array of features) pairs.
+   * @param numIterations Number of iterations of gradient descent to run.
+   * @param stepSize Step size to be used for each iteration of gradient descent.
+
+   * @param miniBatchFraction Fraction of data to be used per iteration.
+   */
+  def train(
+      input: RDD[LabeledPoint],
+      numIterations: Int,
+      stepSize: Double,
+      miniBatchFraction: Double): LogisticRegressionModel = {
+    new GeneralizedRegressionWithSGD(stepSize, numIterations, 0.0, miniBatchFraction)
+      .run(input)
+  }
+
+  /**
+   * Train a logistic regression model given an RDD of (label, features) pairs. We run a fixed
+   * number of iterations of gradient descent using the specified step size. We use the entire data
+   * set to update the gradient in each iteration.
+   * NOTE: Labels used in Logistic Regression should be {0, 1}
+   *
+   * @param input RDD of (label, array of features) pairs.
+   * @param stepSize Step size to be used for each iteration of Gradient Descent.
+
+   * @param numIterations Number of iterations of gradient descent to run.
+   * @return a LogisticRegressionModel which has the weights and offset from training.
+   */
+  def train(
+      input: RDD[LabeledPoint],
+      numIterations: Int,
+      stepSize: Double): LogisticRegressionModel = {
+    train(input, numIterations, stepSize, 1.0)
+  }
+
+  /**
+   * Train a logistic regression model given an RDD of (label, features) pairs. We run a fixed
+   * number of iterations of gradient descent using a step size of 1.0. We use the entire data set
+   * to update the gradient in each iteration.
+   * NOTE: Labels used in Logistic Regression should be {0, 1}
+   *
+   * @param input RDD of (label, array of features) pairs.
+   * @param numIterations Number of iterations of gradient descent to run.
+   * @return a LogisticRegressionModel which has the weights and offset from training.
+   */
+  def train(
+      input: RDD[LabeledPoint],
+      numIterations: Int): LogisticRegressionModel = {
+    train(input, numIterations, 1.0, 1.0)
+  }
+}
+
