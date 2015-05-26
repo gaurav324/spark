@@ -258,6 +258,23 @@ class LogisticRegressionWithSGD(object):
         return _regression_train_wrapper(train, LogisticRegressionModel, data, initialWeights)
 
 
+class GeneralizedRegressionWithSGD(object):
+
+    @classmethod
+    def train(cls, data, iterations=100, step=1.0, miniBatchFraction=1.0,
+              initialWeights=None, regParam=0.01, regType="l2", intercept=False,
+              validateData=True):
+        """
+        Testing.
+        """
+        def train(rdd, i):
+            return callMLlibFunc("trainGeneralizedRegressionModelWithSGD", rdd, int(iterations),
+                                 float(step), float(miniBatchFraction), i, float(regParam), regType,
+                                 bool(intercept), bool(validateData))
+
+        return _regression_train_wrapper(train, LogisticRegressionModel, data, initialWeights)
+
+
 class LogisticRegressionWithLBFGS(object):
 
     @classmethod

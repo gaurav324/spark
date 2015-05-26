@@ -289,10 +289,20 @@ class LeastSquaresGradient extends Gradient {
 @DeveloperApi
 class IdevGradient extends Gradient {
     override def compute(data: Vector, label: Double, weights: Vector): (Vector, Double) = {
-        val diff = dot(data, weights) - label
-        val loss = diff * diff / 2.0
+        val wx = dot(data, weights)
+        val wx_1 = wx - 1
+        val y_1 = label - 1
+
+        val term1 = wx / wx_1
+        val term2 = math.log(wx_1 / y_1)
+        val term3 = 1 / wx_1
+        val term4 = 1
+
         val gradient = data.copy
-        scal(diff, gradient)
+        scal(term1 + term2 - term3 - term4, gradient)
+
+        val loss = wx_1 * math.log(wx_1 / y_1) - wx + label
+
         (gradient, loss)
     }
 
@@ -301,9 +311,21 @@ class IdevGradient extends Gradient {
       label: Double,
       weights: Vector,
       cumGradient: Vector): Double = {
-    val diff = dot(data, weights) - label
-    axpy(diff, data, cumGradient)
-    diff * diff / 2.0
+
+        val wx = dot(data, weights)
+        val wx_1 = wx - 1
+        val y_1 = label - 1
+    
+        val term1 = wx / wx_1
+        val term2 = math.log(wx_1 / y_1)
+        val term3 = 1 / wx_1
+        val term4 = 1
+
+        val gradient = data.copy
+        scal(term1 + term2 - term3 - term4, gradient)
+
+        val loss = wx_1 * math.log(wx_1 / y_1) - wx + label
+        loss
   }
 }
 

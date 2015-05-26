@@ -224,6 +224,48 @@ class LinearRegressionWithSGD(object):
 
         return _regression_train_wrapper(train, LinearRegressionModel, data, initialWeights)
 
+class GeneralizedRegressionWithSGD(object):
+
+    @classmethod
+    def train(cls, data, iterations=100, step=1.0, miniBatchFraction=1.0,
+              initialWeights=None, regParam=0.0, regType=None, intercept=False,
+              validateData=True):
+        """
+        Train a linear regression model on the given data.
+
+        :param data:              The training data.
+        :param iterations:        The number of iterations (default: 100).
+        :param step:              The step parameter used in SGD
+                                  (default: 1.0).
+        :param miniBatchFraction: Fraction of data to be used for each SGD
+                                  iteration.
+        :param initialWeights:    The initial weights (default: None).
+        :param regParam:          The regularizer parameter (default: 0.0).
+        :param regType:           The type of regularizer used for training
+                                  our model.
+
+                                  :Allowed values:
+                                     - "l1" for using L1 regularization (lasso),
+                                     - "l2" for using L2 regularization (ridge),
+                                     - None for no regularization
+
+                                     (default: None)
+
+        :param intercept:         Boolean parameter which indicates the use
+                                  or not of the augmented representation for
+                                  training data (i.e. whether bias features
+                                  are activated or not). (default: False)
+        :param validateData:      Boolean parameter which indicates if the
+                                  algorithm should validate data before training.
+                                  (default: True)
+        """
+        def train(rdd, i):
+            return callMLlibFunc("trainGeneralizedRegressionModelWithSGD", rdd, int(iterations),
+                                 float(step), float(miniBatchFraction), i, float(regParam),
+                                 regType, bool(intercept), bool(validateData))
+
+        return _regression_train_wrapper(train, LinearRegressionModel, data, initialWeights)
+
 
 @inherit_doc
 class LassoModel(LinearRegressionModelBase):
